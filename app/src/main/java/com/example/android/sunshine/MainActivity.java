@@ -21,6 +21,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.android.sunshine.data.SunshinePreferences;
@@ -34,6 +36,8 @@ public class MainActivity extends AppCompatActivity {
 
     //Create a field to store the weather display TextView
     private TextView mWeatherTextView;
+    private TextView mErrorMessageDisplay;
+    private ProgressBar mLoadingIndicator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,9 +46,23 @@ public class MainActivity extends AppCompatActivity {
 
         //Use findViewById to get a reference to the weather display TextView
         mWeatherTextView = (TextView) findViewById(R.id.tv_weather_data);
+        mErrorMessageDisplay = (TextView) findViewById(R.id.tv_error_message_display);
+        mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_loading_indicator);
         loadWeatherData();
 
     }
+
+    private void showWeatherDataView() {
+
+        mErrorMessageDisplay.setVisibility(View.INVISIBLE);
+        mWeatherTextView.setVisibility(View.VISIBLE);
+    }
+
+    private void showErrorMessage() {
+        mWeatherTextView.setVisibility(View.INVISIBLE);
+        mErrorMessageDisplay.setVisibility(View.VISIBLE);
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -52,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
         /* Use AppCompatActivity's method getMenuInflater to get a handle on the menu inflater */
         MenuInflater inflater = getMenuInflater();
         /* Use the inflater's inflate method to inflate our menu layout to this menu */
-        inflater.inflate(R.menu.forecast,menu);
+        inflater.inflate(R.menu.forecast, menu);
         /* Return true so that the menu is displayed in the Toolbar */
         return true;
     }
@@ -61,8 +79,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if(id == R.id.action_refresh)
-        {
+        if (id == R.id.action_refresh) {
             mWeatherTextView.setText("");
             loadWeatherData();
             return true;
@@ -70,14 +87,18 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void loadWeatherData()
-    {
+    private void loadWeatherData() {
+        showWeatherDataView();
         String location = SunshinePreferences.getPreferredWeatherLocation(this);
         new FetchWeatherTask().execute(location);
     }
 
-    public class FetchWeatherTask extends AsyncTask<String, Void, String[]>
-    {
+    public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mLoadingIndicator.setVisibility(View.VISIBLE);
+        }
 
         @Override
         protected String[] doInBackground(String... params) {
@@ -107,17 +128,21 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String[] weatherData) {
-         if(weatherData !=null)
-         {
+
+            mLoadingIndicator.setVisibility(View.INVISIBLE);
+            if (weatherData != null) {
+                showWeatherDataView();
              /*
                  * Iterate through the array and append the Strings to the TextView. The reason why we add
                  * the "\n\n\n" after the String is to give visual separation between each String in the
                  * TextView. Later, we'll learn about a better way to display lists of data.
                  */
-             for(String weatherString : weatherData)
-                 mWeatherTextView.append((weatherString) + "\n\n\n");
-         }
+                for (String weatherString : weatherData) {
+                    mWeatherTextView.append((weatherString) + "\n\n\n");
+                }
+            } else {
+                showErrorMessage();
+            }
         }
     }
-
 }
