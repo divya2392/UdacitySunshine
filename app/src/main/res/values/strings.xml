@@ -29,6 +29,8 @@
     <!--Used by SunshineDateUtils-->
     <!-- - - - - - - - - - - - - -->
 
+    <string name="action_refresh"></string>
+
     <!-- For labelling today's forecast [CHAR LIMIT=15] -->
     <string name="today">Today</string>
 
