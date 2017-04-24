@@ -15,15 +15,19 @@
  */
 package com.example.android.sunshine;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.android.sunshine.data.SunshinePreferences;
 import com.example.android.sunshine.utilities.NetworkUtils;
@@ -32,8 +36,10 @@ import com.example.android.sunshine.utilities.OpenWeatherJsonUtils;
 import java.io.IOException;
 import java.net.URL;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ForecastAdapter.ForecastAdapterOnClickHandler{
 
+    private RecyclerView mRecyclerView;
+    private ForecastAdapter mForecastAdapter;
     //Create a field to store the weather display TextView
     private TextView mWeatherTextView;
     private TextView mErrorMessageDisplay;
@@ -44,9 +50,17 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_forecast);
 
+        mRecyclerView = (RecyclerView) findViewById(R.id.recyclerview_forecast);
         //Use findViewById to get a reference to the weather display TextView
         mWeatherTextView = (TextView) findViewById(R.id.tv_weather_data);
         mErrorMessageDisplay = (TextView) findViewById(R.id.tv_error_message_display);
+               LinearLayoutManager layoutManager
+                = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
+        mRecyclerView.setLayoutManager(layoutManager);
+        mRecyclerView.setHasFixedSize(true);
+        mForecastAdapter = new ForecastAdapter(this);
+        mRecyclerView.setAdapter(mForecastAdapter);
+
         mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_loading_indicator);
         loadWeatherData();
 
@@ -55,11 +69,11 @@ public class MainActivity extends AppCompatActivity {
     private void showWeatherDataView() {
 
         mErrorMessageDisplay.setVisibility(View.INVISIBLE);
-        mWeatherTextView.setVisibility(View.VISIBLE);
+        mRecyclerView.setVisibility(View.VISIBLE);
     }
 
     private void showErrorMessage() {
-        mWeatherTextView.setVisibility(View.INVISIBLE);
+        mRecyclerView.setVisibility(View.INVISIBLE);
         mErrorMessageDisplay.setVisibility(View.VISIBLE);
     }
 
@@ -80,10 +94,11 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         if (id == R.id.action_refresh) {
-            mWeatherTextView.setText("");
+            mForecastAdapter.setweatherData(null);
             loadWeatherData();
             return true;
         }
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -93,7 +108,15 @@ public class MainActivity extends AppCompatActivity {
         new FetchWeatherTask().execute(location);
     }
 
+    @Override
+    public void onClick(String weatherForDay) {
+        Context context = this;
+        Toast.makeText(context, weatherForDay, Toast.LENGTH_SHORT)
+                .show();
+    }
+
     public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
+
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -128,18 +151,10 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String[] weatherData) {
-
             mLoadingIndicator.setVisibility(View.INVISIBLE);
             if (weatherData != null) {
                 showWeatherDataView();
-             /*
-                 * Iterate through the array and append the Strings to the TextView. The reason why we add
-                 * the "\n\n\n" after the String is to give visual separation between each String in the
-                 * TextView. Later, we'll learn about a better way to display lists of data.
-                 */
-                for (String weatherString : weatherData) {
-                    mWeatherTextView.append((weatherString) + "\n\n\n");
-                }
+                mForecastAdapter.setweatherData(weatherData);
             } else {
                 showErrorMessage();
             }
