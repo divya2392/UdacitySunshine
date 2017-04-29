@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.net.URL;
 
 import static android.R.attr.data;
+import static android.R.attr.start;
 
 public class MainActivity extends AppCompatActivity implements ForecastAdapter.ForecastAdapterOnClickHandler, LoaderManager.LoaderCallbacks<String[]>{
 
@@ -135,6 +136,12 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.F
         if(id == R.id.action_map)
         {
             openLocationInMap();
+            return true;
+        }
+        if (id == R.id.action_settings)
+        {
+            Intent startsettingActivity = new Intent(this,SettingsActivity.class);
+            startActivity(startsettingActivity);
             return true;
         }
 
