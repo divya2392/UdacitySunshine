@@ -16,6 +16,10 @@
 package com.example.android.sunshine.data;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.support.v7.preference.PreferenceManager;
+
+import com.example.android.sunshine.R;
 
 public class SunshinePreferences {
 
@@ -87,8 +91,12 @@ public class SunshinePreferences {
      * "94043,USA" if SharedPreferences have not been implemented yet.
      */
     public static String getPreferredWeatherLocation(Context context) {
-        /** This will be implemented in a future lesson **/
-        return getDefaultWeatherLocation();
+      //Return the user preferred location
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String keyForLocation = context.getString(R.string.pref_location_key);
+        String defaultLocation = context.getString(R.string.pref_location_default);
+        return preferences.getString(keyForLocation, defaultLocation);
     }
 
     /**
@@ -98,8 +106,22 @@ public class SunshinePreferences {
      * @return true If metric display should be used
      */
     public static boolean isMetric(Context context) {
-        /** This will be implemented in a future lesson **/
-        return true;
+        /** Return true if the user's preference for units is metric, false otherwise **/
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String keyForUnits = context.getString(R.string.pref_units_key);
+        String defaultUnits = context.getString(R.string.pref_units_metric);
+        String preferredunits = preferences.getString(keyForUnits, defaultUnits);
+        String metric = context.getString(R.string.pref_units_metric);
+        boolean userPrefersmetric;
+        if(metric.equals(preferredunits))
+        {
+            userPrefersmetric = true;
+        }else
+        {
+            userPrefersmetric = false;
+        }
+        return userPrefersmetric;
     }
 
     /**
